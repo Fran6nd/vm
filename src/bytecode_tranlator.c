@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main ( int argc, char *argv[] )
 {
@@ -14,7 +15,11 @@ int main ( int argc, char *argv[] )
     {
         // We assume argv[1] is a filename to open
         FILE *file = fopen( argv[1], "r" );
-
+	int size = strlen(argv[1] + 5);
+	char buff[size];
+	strcpy(buff, argv[1]);
+	strcat(buff, ".bin");
+	FILE *output = fopen(buff, "w");
         /* fopen returns 0, the NULL pointer, on failure */
         if ( file == 0 )
         {
@@ -32,6 +37,7 @@ int main ( int argc, char *argv[] )
                 printf( "%c", x );
             }
             fclose( file );
+	    fclose(output);
         }
     }
     return 0;

@@ -48,58 +48,66 @@ namespace ConsoleApp1
             }
             return (byte)0;
         }
-        static List<byte> load_file(string file)
+        static byte get_args_from_name(string name)
+        {
+            for (int i = 0; i < Program.funcs_name.Count; i++)
+            {
+                if (Program.funcs_name[i] == name)
+                {
+                    return (Program.funcs_args[i]);
+                }
+            }
+            return (byte)0;
+        }
+        static List<List<byte>> load_file(string file)
         {
             string text = File.ReadAllText(file);
             text = text.Replace("\n", " ").Replace("\r", " ").Replace("  ", " ");
             string[] words = text.Split(' ');
 
-            List<byte> output = new List<byte>();
+            List<List<byte>> output = new List<List<byte>>();
             foreach (string word in words)
             {
                 if (word.All(char.IsDigit))
                 {
-                    output.Add((byte)int.Parse(word));
+                    output[output.Count-1].Add((byte)int.Parse(word));
                 }
                 else
                 {
-                    output.Add(Program.get_id_from_name(word));
+                    output.Add(new List<byte>());
+                    output[output.Count-1].Add(Program.get_id_from_name(word));
                 }
             }
             return output;
 
         }
-        static int run(List<byte> instructions)
+        static int run(List<List<byte>> instructions)
         {
             byte[] memmory = new byte[256];
             for (int i = 0; i < instructions.Count; i++)
             {
-
-                switch ((INSTRUCTIONS)instructions[i])
+                switch ((INSTRUCTIONS)instructions[i][0])
                 {
                     case INSTRUCTIONS.EXIT:
-                        return (int)instructions[i + 1];
+                        return (int)instructions[i][1];
                     case INSTRUCTIONS.SET:
-                        memmory[(int)instructions[i + 1]] = instructions[i + 2];
-                        i += 2;
+                        memmory[(int)(instructions[i][1])] = instructions[i][2];
                         break;
                     case INSTRUCTIONS.OUT:
-                        Console.Write((char)(int)memmory[(int)instructions[i + 1]]);
-                        i++;
+                        Console.Write((char)(int)memmory[(int)(instructions[i][1])]);
                         break;
                     case INSTRUCTIONS.ADD:
                         {
-                            int result = memmory[(int)instructions[i + 1]] + memmory[(int)instructions[i + 2]];
+                            int result = (int) memmory[(int)instructions[i][1]]+ (int) memmory[(int)instructions[i][2]];
                             int l = result & 0xff;
                             int h = result >> 8 & 0xff;
                             memmory[(int)REGISTRIES.RESH] = (byte)h;
                             memmory[(int)REGISTRIES.RESL] = (byte)l;
-                            i += 2;
                         }
                         break;
                     case INSTRUCTIONS.SUB:
                         {
-                            int result = memmory[(int)instructions[i + 1]] - memmory[(int)instructions[i + 2]];
+                            int result = (int) memmory[(int)instructions[i][1]]- (int) memmory[(int)instructions[i][2]];
                             /* RESH = 0x00 means positive result. */
                             memmory[(int)REGISTRIES.RESH] = 0x00;
                             if (result < 0)
@@ -109,12 +117,10 @@ namespace ConsoleApp1
                                 memmory[(int)REGISTRIES.RESH] = 0xff;
                             }
                             memmory[(int)REGISTRIES.RESL] = (byte)result;
-                            i += 2;
                         }
                         break;
                     case INSTRUCTIONS.MOVE:
-                        memmory[(int)instructions[i + 2]] = memmory[(int)instructions[i + 1]];
-                        i += 2;
+                        memmory[(int)instructions[i][2]] = memmory[(int)instructions[i][1]];
                         break;
                 }
 
